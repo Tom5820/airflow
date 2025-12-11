@@ -15,15 +15,12 @@ def hello_world(**context):
     return "done"
 
 with DAG(
-    dag_id="example_simple_dag",
+    dag_id="spark_test_with_helper",
     default_args=default_args,
-    description="A simple example DAG",
-    schedule_interval="@daily",
     start_date=datetime(2024, 1, 1),
+    schedule=None,
     catchup=False,
-    tags=["example"],
 ) as dag:
-
     task_hello = PythonOperator(
         task_id="hello_task",
         python_callable=hello_world
