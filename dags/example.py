@@ -25,7 +25,7 @@ with DAG(
         task_id="spark_test_task",
         app_name="spark-test",
         # Upload test_script.py lên MinIO trước
-        py_file="s3a://aiqg-spark-source/test.py",
+        main_application_file="s3a://aiqg-spark-source/test.py",
         arguments=["--name", "{{ ds }}"],
         driver_memory="512m",
         executor_memory="512m",

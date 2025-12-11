@@ -1,73 +1,99 @@
-from datetime import datetime, timedelta
-import os
+from typing import Optional, List, Dict, Any
+from airflow.exceptions import AirflowException
 from plugins.utils.get_config import CONFIG
 
-def create_spark_job(
-        task_id: str,
-        app_name: str,
-        py_file: str,
-        arguments: list = None,
-        driver_memory: str = "512m",
-        executor_memory: str = "512m",
-        executor_instances: int = 2,
-        **kwargs
-):
+
+def create_spark_kubernetes_operator() -> Any:
+    """Lazy import để tránh timeout khi Airflow parse DAG"""
     from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import SparkKubernetesOperator
-    """
-    Usage:
-        job = create_spark_job_with_local_file(
-            task_id='process',
-            app_name='process-data',
-            py_file='scripts/process.py',  # File trong dags/
-            arguments=['--date', '{{ ds }}']
-        )
-    """
-    return SparkKubernetesOperator(
-        task_id=task_id,
-        namespace='spark-cluster',
-        application_file={
-            'apiVersion': 'sparkoperator.k8s.io/v1beta2',
-            'kind': 'SparkApplication',
-            'metadata': {
-                'name': f'{app_name}-{{{{ ts_nodash | lower }}}}',
-                'namespace': 'spark-cluster',
-            },
-            'spec': {
-                'type': 'Python',
-                'pythonVersion': '3',
-                'mode': 'cluster',
-                'image': CONFIG['spark_image'],
-                'imagePullPolicy': 'IfNotPresent',
-                'imagePullSecrets': [CONFIG['spark_img_pull_secret']],
-                'mainApplicationFile': py_file,
-                'sparkVersion': '3.4.1',
-                'restartPolicy': {
-                    'type': 'OnFailure',
-                    'onFailureRetries': 3,
-                },
-                'driver': {
-                    'cores': 1,
-                    'memory': driver_memory
-                },
-                'executor': {
-                    'cores': 1,
-                    'instances': executor_instances,
-                    'memory': executor_memory
-                },
-                'sparkConf': {
-                    'spark.hadoop.fs.s3a.impl': 'org.apache.hadoop.fs.s3a.S3AFileSystem',
-                    'spark.hadoop.hive.metastore.warehouse.dir': 's3a://warehouse/',
-                    'spark.hadoop.fs.s3a.endpoint': CONFIG['minio_endpoint'],
-                    'spark.hadoop.fs.s3a.access.key': CONFIG['minio_access_key'],
-                    'spark.hadoop.fs.s3a.secret.key': CONFIG['minio_secret_key'],
-                    'hive.metastore.uris': CONFIG['hive_metastore_uri'],
-                    'spark.hadoop.fs.s3a.path.style.access': 'true',
-                    'spark.sql.extensions': 'io.delta.sql.DeltaSparkSessionExtension',
-                    'spark.sql.catalog.spark_catalog': 'org.apache.spark.sql.delta.catalog.DeltaCatalog',
-                },
-                'arguments': arguments or [],
+    return SparkKubernetesOperator
+
+
+def create_spark_job(
+    task_id: str,
+    app_name: str,
+    main_application_file: str,
+    arguments: Optional[List[str]] = None,
+    driver_memory: str = "1g",
+    executor_memory: str = "2g",
+    executor_cores: int = 1,
+    executor_instances: int = 2,
+    driver_cores: int = 1,
+    image: Optional[str] = None,
+    namespace: str = "spark-cluster",
+    extra_spark_conf: Optional[Dict[str, str]] = None,
+    extra_labels: Optional[Dict[str, str]] = None,
+    **kwargs: Any,
+) -> Any:
+
+    SparkKubernetesOperator = _spark_kubernetes_operator()
+
+    if not main_application_file.startswith(("local://", "file://", "s3://", "hdfs://")):
+        raise AirflowException("main_application_file must start with local://, file://, s3:// or hdfs://")
+
+    application_name = f"{app_name}-{{{{ ts_nodash.lower() }}}}"
+
+    base_spark_conf = {
+        "spark.hadoop.fs.s3a.impl": "org.apache.hadoop.fs.s3a.S3AFileSystem",
+        "spark.hadoop.fs.s3a.endpoint": CONFIG["minio_endpoint"],
+        "spark.hadoop.fs.s3a.access.key": CONFIG["minio_access_key"],
+        "spark.hadoop.fs.s3a.secret.key": CONFIG["minio_secret_key"],
+        "spark.hadoop.fs.s3a.path.style.access": "true",
+        "spark.sql.extensions": "io.delta.sql.DeltaSparkSessionExtension",
+        "spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog",
+    }
+    if extra_spark_conf:
+        base_spark_conf.update(extra_spark_conf)
+
+    image = image or CONFIG.get("spark_image")
+    if not image:
+        raise AirflowException("spark_image not found in CONFIG")
+
+    application_file = {
+        "apiVersion": "sparkoperator.k8s.io/v1beta2",
+        "kind": "SparkApplication",
+        "metadata": {
+            "name": application_name,
+            "namespace": namespace,
+            "labels": {
+                "app": app_name,
+                "created-by": "airflow",
+                "dag_id": "{{ dag.dag_id }}",
+                "task_id": task_id,
+                **(extra_labels or {}),
             },
         },
-        kubernetes_conn_id='aiqg_kubernetes',
-        **kwargs
+        "spec": {
+            "type": "Python",
+            "pythonVersion": "3",
+            "mode": "cluster",
+            "image": image,
+            "imagePullPolicy": "IfNotPresent",
+            "imagePullSecrets": [{"name": CONFIG["spark_img_pull_secret"]}]
+            if CONFIG.get("spark_img_pull_secret")
+            else [],
+            "mainApplicationFile": main_application_file,
+            "restartPolicy": {
+                "type": "OnFailure",
+                "onFailureRetries": 1,
+            },
+            "driver": {"cores": driver_cores, "memory": driver_memory},
+            "executor": {
+                "cores": executor_cores,
+                "instances": executor_instances,
+                "memory": executor_memory,
+            },
+            "sparkConf": base_spark_conf,
+            "arguments": arguments or [],
+            "deletionPolicy": "Always",
+        },
+    }
+
+    return SparkKubernetesOperator(
+        task_id=task_id,
+        namespace=namespace,
+        application_file=application_file,
+        kubernetes_conn_id="aiqg_kubernetes",
+        do_xcom_push=True,
+        **kwargs,
     )
