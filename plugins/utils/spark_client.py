@@ -4,7 +4,6 @@ from plugins.utils.get_config import CONFIG
 
 
 def _get_spark_operator_class() -> Any:
-    """Lazy import để tránh timeout khi Airflow parse DAG"""
     from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import SparkKubernetesOperator
     return SparkKubernetesOperator
 
@@ -28,7 +27,7 @@ def create_spark_job(
 
     SparkKubernetesOperator = _get_spark_operator_class()
 
-    if not main_application_file.startswith(("local://", "file://", "s3://", "hdfs://")):
+    if not main_application_file.startswith(("local://", "file://", "s3a://", "hdfs://")):
         raise AirflowException("main_application_file must start with local://, file://, s3:// or hdfs://")
 
     application_name = f"{app_name}-{{{{ ts_nodash.lower() }}}}"

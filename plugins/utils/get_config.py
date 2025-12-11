@@ -1,4 +1,3 @@
-# plugins/utils/get_config.py
 from airflow.models import Variable
 
 _CONFIG = None
