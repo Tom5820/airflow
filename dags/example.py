@@ -1,7 +1,7 @@
 from datetime import datetime
 from airflow import DAG
 
-from plugins.utils.spark_client import create_spark_job
+# from plugins.utils.spark_client import create_spark_job
 
 default_args = {
     "owner": "lannh",
