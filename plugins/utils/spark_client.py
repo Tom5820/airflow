@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from airflow import DAG
 from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import SparkKubernetesOperator
 import os
 from plugins.utils.get_config import CONFIG
