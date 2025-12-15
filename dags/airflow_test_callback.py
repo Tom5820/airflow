@@ -3,7 +3,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.empty import EmptyOperator
 
-from airflow_callbacks import dag_failure_callback
+from plugins.utils.airflow_callbacks import dag_failure_callback
 
 
 def success_task():
