@@ -32,7 +32,7 @@ def dag_failure_callback(context):
 
     try:
         requests.post(
-            url="https://your-api-endpoint/airflow/dag-failed",
+            url="https://172.16.13.59:8585/airflow_callback",
             json=payload,
             timeout=10,
         )
