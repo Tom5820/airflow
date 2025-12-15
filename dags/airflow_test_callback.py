@@ -1,7 +1,7 @@
+import pendulum
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.empty import EmptyOperator
-from airflow.utils.dates import days_ago
 
 from airflow_callbacks import dag_failure_callback
 
@@ -16,7 +16,7 @@ def fail_task():
 
 with DAG(
     dag_id="example_dag_task_fail",
-    start_date=days_ago(1),
+    start_date=pendulum.datetime(2025, 12, 15, tz="UTC"),
     schedule_interval=None,
     catchup=False,
     on_failure_callback=dag_failure_callback,
