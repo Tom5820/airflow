@@ -17,7 +17,6 @@ def fail_task():
 with DAG(
     dag_id="example_dag_task_fail",
     start_date=pendulum.datetime(2025, 12, 15, tz="UTC"),
-    schedule_interval=None,
     catchup=False,
     on_failure_callback=dag_failure_callback,
     tags=["example", "failure-test"],
