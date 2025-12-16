@@ -22,7 +22,7 @@ def dag_failure_callback(context):
             # "log_url": task_instance.log_url,
             "start_date": str(task_instance.start_date) if task_instance.start_date else None,
             "end_date": str(task_instance.end_date) if task_instance.end_date else None,
-            "duration": task_instance.duration,
+            # "duration": task_instance.duration,
             "state": str(task_instance.state),
         })
     
