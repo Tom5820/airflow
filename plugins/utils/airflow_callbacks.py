@@ -19,7 +19,7 @@ def dag_failure_callback(context):
         failed_tasks.append({
             "task_id": task_instance.task_id,
             "try_number": task_instance.try_number,
-            "log_url": task_instance.log_url,
+            # "log_url": task_instance.log_url,
             "start_date": str(task_instance.start_date) if task_instance.start_date else None,
             "end_date": str(task_instance.end_date) if task_instance.end_date else None,
             "duration": task_instance.duration,
