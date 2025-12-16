@@ -13,12 +13,15 @@ def success_task():
 def fail_task():
     raise Exception("Cố tình fail để test DAG failure callback")
 
+default_args = {
+    'on_failure_callback': dag_failure_callback
+}
 
 with DAG(
     dag_id="example_dag_task_fail",
     start_date=pendulum.datetime(2025, 12, 15, tz="UTC"),
     catchup=False,
-    on_failure_callback=dag_failure_callback,
+    default_args=default_args,
     tags=["example", "failure-test"],
 ) as dag:
 
