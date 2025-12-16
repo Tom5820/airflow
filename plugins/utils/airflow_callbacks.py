@@ -1,6 +1,6 @@
 import requests
 from airflow.utils.state import State
-from airflow.models import TaskInstance
+from datetime import datetime
 
 
 def dag_failure_callback(context):
@@ -11,38 +11,35 @@ def dag_failure_callback(context):
     """
     dag_run = context.get("dag_run")
     dag = context.get("dag")
+    task_instance = context.get("task_instance")
     failed_tasks = []
     
-    if dag_run:
-        # Sử dụng session để query task instances
-        from airflow.settings import Session
-        session = Session()
-        
-        try:
-            # Query task instances từ database
-            task_instances = session.query(TaskInstance).filter(
-                TaskInstance.dag_id == dag_run.dag_id,
-                TaskInstance.run_id == dag_run.run_id,
-                TaskInstance.state == State.FAILED
-            ).all()
-            
-            for ti in task_instances:
-                failed_tasks.append({
-                    "task_id": ti.task_id,
-                    "try_number": ti.try_number,
-                    "log_url": ti.log_url,
-                    "start_date": str(ti.start_date) if ti.start_date else None,
-                    "end_date": str(ti.end_date) if ti.end_date else None,
-                    "duration": ti.duration,
-                })
-        finally:
-            session.close()
+    # Lấy thông tin từ task instance hiện tại (task bị failed)
+    if task_instance:
+        failed_tasks.append({
+            "task_id": task_instance.task_id,
+            "try_number": task_instance.try_number,
+            "log_url": task_instance.log_url,
+            "start_date": str(task_instance.start_date) if task_instance.start_date else None,
+            "end_date": str(task_instance.end_date) if task_instance.end_date else None,
+            "duration": task_instance.duration,
+            "state": str(task_instance.state),
+        })
+    
+    # Thời gian fail
+    failed_at = None
+    if task_instance and task_instance.end_date:
+        failed_at = str(task_instance.end_date)
+    elif context.get("logical_date"):
+        failed_at = str(context.get("logical_date"))
+    else:
+        failed_at = str(datetime.now())
     
     payload = {
         "dag_id": dag.dag_id if dag else None,
         "run_id": dag_run.run_id if dag_run else None,
         "execution_date": str(context.get("execution_date")),
-        "failed_at": str(context.get("logical_date")) if context.get("logical_date") else str(context.get("execution_date")),
+        "failed_at": failed_at,
         "failed_tasks": failed_tasks,
         "exception": str(context.get("exception")),
     }
