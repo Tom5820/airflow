@@ -1,6 +1,7 @@
 import requests
 from airflow.utils.state import State
 from datetime import datetime
+from airflow.models import Variable
 
 
 def dag_failure_callback(context):
@@ -43,10 +44,10 @@ def dag_failure_callback(context):
         "failed_tasks": failed_tasks,
         "exception": str(context.get("exception")),
     }
-    
+    callback_url = Variable.get("callback_url")
     try:
         response = requests.post(
-            url="http://172.16.13.59:8585/airflow_callback",
+            url=callback_url,
             json=payload,
             timeout=10,
         )

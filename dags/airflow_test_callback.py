@@ -2,6 +2,7 @@ import pendulum
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.empty import EmptyOperator
+from airflow.utils.trigger_rule import TriggerRule
 
 from plugins.utils.airflow_callbacks import dag_failure_callback
 
@@ -13,8 +14,9 @@ def success_task():
 def fail_task():
     raise Exception("Cố tình fail để test DAG failure callback")
 
+
 default_args = {
-    'on_failure_callback': dag_failure_callback
+    "on_failure_callback": dag_failure_callback
 }
 
 with DAG(
@@ -37,6 +39,9 @@ with DAG(
         python_callable=fail_task,
     )
 
-    end = EmptyOperator(task_id="end")
+    end = EmptyOperator(
+        task_id="end",
+        trigger_rule=TriggerRule.ALL_DONE
+    )
 
     start >> task_ok >> task_fail >> end
