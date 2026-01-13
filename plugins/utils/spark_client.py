@@ -65,10 +65,11 @@ def create_spark_job(
         "spec": {
             "type": "Python",
             "pythonVersion": "3",
+            "sparkVersion": "3.4.1",
             "mode": "cluster",
             "image": image,
             "imagePullPolicy": "IfNotPresent",
-            "imagePullSecrets": [{"name": CONFIG["spark_img_pull_secret"]}]
+            "imagePullSecrets": [CONFIG["spark_img_pull_secret"]]
             if CONFIG.get("spark_img_pull_secret")
             else [],
             "mainApplicationFile": main_application_file,
