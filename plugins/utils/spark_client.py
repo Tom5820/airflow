@@ -1,7 +1,7 @@
 from typing import Optional, List, Dict, Any
 from airflow.exceptions import AirflowException
 from plugins.utils.get_config import CONFIG
-
+import yaml
 
 def _get_spark_operator_class() -> Any:
     from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import SparkKubernetesOperator
@@ -88,10 +88,13 @@ def create_spark_job(
         },
     }
 
+    print(application_file)
+    application_file_yaml = yaml.safe_dump(application_file, sort_keys=False, allow_unicode=True)
+    print(application_file_yaml)
     return SparkKubernetesOperator(
         task_id=task_id,
         namespace=namespace,
-        application_file=application_file,
+        application_file=application_file_yaml,
         kubernetes_conn_id="aiqg_kubernetes",
         do_xcom_push=True,
         **kwargs,
