@@ -79,8 +79,13 @@ def create_spark_job(
                 "type": "OnFailure",
                 "onFailureRetries": 1,
             },
-            "driver": {"cores": driver_cores, "memory": driver_memory},
+            "driver": {
+                "serviceAccount": [CONFIG["spark_operator_SA"]],
+                "cores": driver_cores,
+                "memory": driver_memory
+            },
             "executor": {
+                "serviceAccount": [CONFIG["spark_operator_SA"]],
                 "cores": executor_cores,
                 "instances": executor_instances,
                 "memory": executor_memory,
