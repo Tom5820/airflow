@@ -12,6 +12,8 @@ default_args = {
     "retry_delay": timedelta(minutes=5),
 }
 
+execution_date = '{{ execution_date.strftime(\'%y%m%d\') }}'
+
 with DAG(
     dag_id="bitbucket_member",
     description="Fetch Bitbucket members API and store raw JSON to MinIO",
@@ -28,7 +30,7 @@ with DAG(
             "api_url": "https://api.bitbucket.org/2.0/workspaces/gemcorp/members",
             "bucket_name": CONFIG['raw_bucket'],
             "aws_conn_id": "minio_connection",
-            "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/members/dt={{ ds }}",
+            "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/members/dt={execution_date}",
         },
     )
 
