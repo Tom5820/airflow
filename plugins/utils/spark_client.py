@@ -102,6 +102,6 @@ def create_spark_job(
         namespace=namespace,
         application_file=application_file_yaml,
         kubernetes_conn_id="aiqg_kubernetes",
-        do_xcom_push=True,
+        do_xcom_push=False,
         **kwargs,
     )
