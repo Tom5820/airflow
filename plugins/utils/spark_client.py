@@ -80,19 +80,18 @@ def create_spark_job(
                 "onFailureRetries": 1,
             },
             "driver": {
-                "serviceAccount": [CONFIG["spark_operator_SA"]],
+                "serviceAccount": CONFIG["spark_operator_SA"],
                 "cores": driver_cores,
                 "memory": driver_memory
             },
             "executor": {
-                "serviceAccount": [CONFIG["spark_operator_SA"]],
+                "serviceAccount": CONFIG["spark_operator_SA"],
                 "cores": executor_cores,
                 "instances": executor_instances,
                 "memory": executor_memory,
             },
             "sparkConf": base_spark_conf,
-            "arguments": arguments or [],
-            "deletionPolicy": "Always",
+            "arguments": arguments or []
         },
     }
 
