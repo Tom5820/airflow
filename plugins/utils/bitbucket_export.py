@@ -3,6 +3,7 @@ import requests
 from datetime import datetime
 from typing import Optional
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
+from typing import Optional, List, Dict
 
 from plugins.utils.get_config import CONFIG
 
@@ -25,21 +26,41 @@ def fetch_api_to_minio(
         "Authorization": f"Basic {CONFIG['bitbucket_api_token']}"
     }
 
-    response = requests.get(
-        api_url,
-        headers=headers,
-        timeout=timeout
-    )
-    response.raise_for_status()
+    all_values: List[Dict] = []
+    current_url = api_url
+    meta = {}
 
-    data = response.json()
+    while current_url:
+        response = requests.get(
+            current_url,
+            headers=headers,
+            timeout=timeout
+        )
+        response.raise_for_status()
 
-    # 2. Build object name
+        data = response.json()
+
+        all_values.extend(data.get("values", []))
+
+        if not meta:
+            meta = {
+                "pagelen": data.get("pagelen"),
+                "size": data.get("size"),
+            }
+        current_url = data.get("next")
+
+    final_payload = {
+        "meta": meta,
+        "count": len(all_values),
+        "values": all_values
+    }
+
+    # 3. Object name
     if not object_name:
         ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
         object_name = f"{object_prefix}/data_{ts}.json"
 
-    json_str = json.dumps(data, ensure_ascii=False, indent=2)
+    json_str = json.dumps(final_payload, ensure_ascii=False, indent=2)
 
     s3_hook = S3Hook(aws_conn_id=aws_conn_id)
 
