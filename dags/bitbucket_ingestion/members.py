@@ -6,7 +6,7 @@ from plugins.utils.bitbucket_export import fetch_api_to_minio
 
 default_args = {
     "owner": "lannh",
-    "retries": 2,
+    "retries": 0,
     "retry_delay": timedelta(minutes=5),
 }
 
