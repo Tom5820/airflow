@@ -3,6 +3,8 @@ from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 
 from plugins.utils.bitbucket_export import fetch_api_to_minio
+from plugins.utils.get_config import CONFIG
+
 
 default_args = {
     "owner": "lannh",
@@ -24,9 +26,9 @@ with DAG(
         python_callable=fetch_api_to_minio,
         op_kwargs={
             "api_url": "https://api.bitbucket.org/2.0/workspaces/gemcorp/members",
-            "bucket_name": "raw",
-            "aws_conn_id": "aws_minio",
-            "object_prefix": "bitbucket/members/dt={{ ds }}",
+            "bucket_name": CONFIG['raw_bucket'],
+            "aws_conn_id": "minio_connection",
+            "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/members/dt={{ ds }}",
         },
     )
 
