@@ -15,7 +15,6 @@ with DAG(
     description="Fetch Bitbucket members API and store raw JSON to MinIO",
     default_args=default_args,
     start_date=datetime(2026, 1, 1),
-    schedule_interval=None,
     catchup=False,
     tags=["bitbucket", "minio", "api"],
 ) as dag:
