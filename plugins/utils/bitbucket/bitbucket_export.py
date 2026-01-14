@@ -11,8 +11,8 @@ from plugins.utils.get_config import CONFIG
 def fetch_api_to_minio(
     api_url: str,
     bucket_name: str,
-    aws_conn_id: str = "aws_minio",
-    object_prefix: str = "api",
+    aws_conn_id: str,
+    object_prefix: str,
     object_name: Optional[str] = None,
     timeout: int = 30
 ):
