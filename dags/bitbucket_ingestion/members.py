@@ -12,7 +12,7 @@ default_args = {
     "retry_delay": timedelta(minutes=5),
 }
 
-execution_date = '{{ execution_date.strftime(\'%y%m%d\') }}'
+execution_date = '{{ ds_nodash }}'
 
 with DAG(
     dag_id="bitbucket_member",
@@ -30,7 +30,7 @@ with DAG(
             "api_url": "https://api.bitbucket.org/2.0/workspaces/gemcorp/members",
             "bucket_name": CONFIG['raw_bucket'],
             "aws_conn_id": "minio_connection",
-            "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/members/dt={execution_date}",
+            "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/members/date={execution_date}",
         },
     )
 
