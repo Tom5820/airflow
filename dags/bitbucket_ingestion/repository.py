@@ -15,7 +15,7 @@ default_args = {
 execution_date = '{{ ds_nodash }}'
 
 with DAG(
-    dag_id="bitbucket_project",
+    dag_id="bitbucket_repo",
     description="Fetch Bitbucket projects API and store raw JSON to MinIO",
     default_args=default_args,
     start_date=datetime(2026, 1, 1),
