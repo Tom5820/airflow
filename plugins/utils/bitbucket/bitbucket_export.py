@@ -77,3 +77,5 @@ def fetch_api_to_minio(
         "object": object_name,
         "size_bytes": len(json_str)
     }
+def fetch_commit_to_minio():
+    return 1

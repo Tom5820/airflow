@@ -23,15 +23,15 @@ with DAG(
     tags=["bitbucket", "minio", "api"],
 ) as dag:
 
-    fetch_projects = PythonOperator(
-        task_id="fetch_projects",
+    fetch_repos = PythonOperator(
+        task_id="fetch_repos",
         python_callable=fetch_api_to_minio,
         op_kwargs={
-            "api_url": "https://api.bitbucket.org/2.0/workspaces/gemcorp/projects",
+            "api_url": "https://api.bitbucket.org/2.0/repositories/gemcorp",
             "bucket_name": CONFIG['raw_bucket'],
             "aws_conn_id": "minio_connection",
-            "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/projects/date={execution_date}",
+            "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/repository/date={execution_date}",
         },
     )
 
-    fetch_projects
+    fetch_repos
