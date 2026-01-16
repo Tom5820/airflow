@@ -33,14 +33,17 @@ with DAG(
 
     fetch_commit = PythonOperator.partial(
         task_id="process_repo",
-        python_callable=fetch_api_to_minio,
-        op_kwargs={
-            "bucket_name": CONFIG["raw_bucket"],
-            "aws_conn_id": "minio_connection",
-            "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/commit/date={execution_date}",
-        },
-    ).expand(
-        api_url=list_repos_task.output
+        python_callable=fetch_api_to_minio
+    ).expand_kwargs(
+        [
+            {
+                "api_url": url,
+                "bucket_name": CONFIG["raw_bucket"],
+                "aws_conn_id": "minio_connection",
+                "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/commit/date={execution_date}",
+            }
+            for url in list_repos_task.output
+        ]
     )
 
     list_repos_task >> fetch_commit
