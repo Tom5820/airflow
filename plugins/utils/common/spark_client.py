@@ -1,6 +1,6 @@
 from typing import Optional, List, Dict, Any
 from airflow.exceptions import AirflowException
-from plugins.utils.get_config import CONFIG
+from plugins.utils.common.get_config import CONFIG
 import yaml
 
 def _get_spark_operator_class() -> Any:

@@ -3,7 +3,7 @@ from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 
 from plugins.utils.bitbucket.bitbucket_export import fetch_api_to_minio
-from plugins.utils.get_config import CONFIG
+from plugins.utils.common.get_config import CONFIG
 
 
 default_args = {

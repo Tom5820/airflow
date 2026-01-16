@@ -3,7 +3,7 @@ from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 
 from plugins.utils.bitbucket.bitbucket_export import fetch_api_to_minio
-from plugins.utils.get_config import CONFIG
+from plugins.utils.common.get_config import CONFIG
 
 
 default_args = {
@@ -16,7 +16,7 @@ execution_date = '{{ ds_nodash }}'
 
 with DAG(
     dag_id="bitbucket_repo",
-    description="Fetch Bitbucket projects API and store raw JSON to MinIO",
+    description="Fetch Bitbucket repositories API and store raw JSON to MinIO",
     default_args=default_args,
     start_date=datetime(2026, 1, 1),
     catchup=False,
