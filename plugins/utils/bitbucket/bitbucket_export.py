@@ -77,13 +77,25 @@ def fetch_api_to_minio(
 #     return 1
 
 def list_repos(workspace: str) -> list[str]:
+    """
+        Return list of api_url so it can be used directly in expand(api_url=...)
+        """
     url = f"https://api.bitbucket.org/2.0/repositories/{workspace}"
-    repos = []
+    api_urls: List[str] = []
+
     while url:
         data = invoke_bitbucket_http(url)
-        repos.extend([r["slug"] for r in data.get("values", [])])
+
+        for repo in data.get("values", []):
+            repo_slug = repo.get("slug")
+            if repo_slug:
+                api_urls.append(
+                    f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo_slug}/commits"
+                )
+
         url = data.get("next")
-    return repos
+
+    return api_urls
 
 def invoke_bitbucket_http(url, timeout: int = 30):
     headers = {
