@@ -27,7 +27,7 @@ with DAG(
         task_id="fetch_projects",
         python_callable=fetch_api_to_minio,
         op_kwargs={
-            "api_url": "https://api.bitbucket.org/2.0/workspaces/gemcorp/projects",
+            "api_url": f"https://api.bitbucket.org/2.0/workspaces/{CONFIG['bitbucket_workspace']}/projects",
             "bucket_name": CONFIG['raw_bucket'],
             "aws_conn_id": "minio_connection",
             "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/projects/date={execution_date}",

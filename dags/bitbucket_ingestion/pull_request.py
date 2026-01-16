@@ -27,7 +27,7 @@ with DAG(
         task_id="fetch_pull_request",
         python_callable=fetch_entity_by_repo,
         op_kwargs={
-            "repo_url": "https://api.bitbucket.org/2.0/repositories/gemcorp",
+            "repo_url": f"https://api.bitbucket.org/2.0/repositories/{CONFIG['bitbucket_workspace']}",
             "entity_type": "pullrequests",
             "bucket_name": CONFIG['raw_bucket'],
             "aws_conn_id": "minio_connection",

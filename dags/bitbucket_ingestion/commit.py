@@ -2,7 +2,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 
-from plugins.utils.bitbucket.bitbucket_export import fetch_entity_by_repo
+from plugins.utils.bitbucket.bitbucket_export import list_repos, fetch_api_to_minio
 from plugins.utils.common.get_config import CONFIG
 
 
@@ -21,18 +21,19 @@ with DAG(
     start_date=datetime(2026, 1, 1),
     catchup=False,
     tags=["bitbucket", "minio", "api"],
+    max_active_tasks=10
 ) as dag:
+    repos = list_repos(CONFIG['bitbucket_workspace'])
 
-    fetch_commit = PythonOperator(
-        task_id="fetch_repos",
-        python_callable=fetch_entity_by_repo,
+    fetch_commit = PythonOperator.partial(
+        task_id="process_repo",
+        python_callable=fetch_api_to_minio,
         op_kwargs={
-            "repo_url": "https://api.bitbucket.org/2.0/repositories/gemcorp",
-            "entity_type": "commits",
+            "api_url": f"https://api.bitbucket.org/2.0/workspaces/{CONFIG['bitbucket_workspace']}/members",
             "bucket_name": CONFIG['raw_bucket'],
             "aws_conn_id": "minio_connection",
             "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/commit/date={execution_date}",
-        },
-    )
+        }
+    ).expand(repos)
 
     fetch_commit
