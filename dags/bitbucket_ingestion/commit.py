@@ -23,7 +23,13 @@ with DAG(
     tags=["bitbucket", "minio", "api"],
     max_active_tasks=10
 ) as dag:
-    repos = list_repos(CONFIG['bitbucket_workspace'])
+    list_repos_task = PythonOperator(
+        task_id="list_repos",
+        python_callable=list_repos,
+        op_kwargs={
+            "workspace": CONFIG["bitbucket_workspace"],
+        },
+    )
 
     fetch_commit = PythonOperator.partial(
         task_id="process_repo",
@@ -34,6 +40,6 @@ with DAG(
             "aws_conn_id": "minio_connection",
             "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/commit/date={execution_date}",
         }
-    ).expand(repos)
+    ).expand(list_repos_task.output)
 
     fetch_commit
