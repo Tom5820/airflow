@@ -1,6 +1,7 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
+from airflow.decorators import task
 
 from plugins.utils.bitbucket.bitbucket_export import list_repos, fetch_api_to_minio
 from plugins.utils.common.get_config import CONFIG
@@ -31,19 +32,26 @@ with DAG(
         },
     )
 
+
+    @task
+    def build_op_kwargs(api_url: str) -> dict:
+        """Build kwargs dict for each api_url"""
+        execution_date = '{{ ds_nodash }}'
+        return {
+            "api_url": api_url,
+            "bucket_name": CONFIG["raw_bucket"],
+            "aws_conn_id": "minio_connection",
+            "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/commit/date={execution_date}",
+        }
+
+
+    # Expand để tạo kwargs cho từng URL
+    op_kwargs_list = build_op_kwargs.expand(api_url=list_repos_task.output)
+
+    # Expand PythonOperator với kwargs đã build
     fetch_commit = PythonOperator.partial(
         task_id="process_repo",
-        python_callable=fetch_api_to_minio
-    ).expand_kwargs(
-        [
-            {
-                "api_url": url,
-                "bucket_name": CONFIG["raw_bucket"],
-                "aws_conn_id": "minio_connection",
-                "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/commit/date={execution_date}",
-            }
-            for url in list_repos_task.output
-        ]
-    )
+        python_callable=fetch_api_to_minio,
+    ).expand(op_kwargs=op_kwargs_list)
 
-    list_repos_task >> fetch_commit
+    list_repos_task >> op_kwargs_list >> fetch_commit
