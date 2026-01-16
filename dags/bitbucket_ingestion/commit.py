@@ -27,7 +27,8 @@ with DAG(
         task_id="fetch_repos",
         python_callable=fetch_entity_by_repo,
         op_kwargs={
-            "api_url": "https://api.bitbucket.org/2.0/repositories/gemcorp",
+            "repo_url": "https://api.bitbucket.org/2.0/repositories/gemcorp",
+            "entity_type": "commits",
             "bucket_name": CONFIG['raw_bucket'],
             "aws_conn_id": "minio_connection",
             "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/commit/date={execution_date}",

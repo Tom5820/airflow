@@ -71,7 +71,7 @@ def fetch_entity_by_repo(repo_url, entity_type, bucket_name, aws_conn_id, object
         for repo in repo_data.get("values", []):
             repo_slug = repo["slug"]
             api_url = f"{repo_url}/{repo_slug}/{entity_type}"
-            fetch_api_to_minio(api_url)
+            fetch_api_to_minio(api_url, bucket_name, aws_conn_id, object_prefix)
 
     return 1
 
