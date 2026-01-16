@@ -15,7 +15,7 @@ default_args = {
 execution_date = '{{ ds_nodash }}'
 
 with DAG(
-    dag_id="bitbucket_pull_request",
+    dag_id="bitbucket_commit",
     description="Fetch Bitbucket pull request API and store raw JSON to MinIO",
     default_args=default_args,
     start_date=datetime(2026, 1, 1),
