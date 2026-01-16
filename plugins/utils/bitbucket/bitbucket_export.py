@@ -94,7 +94,6 @@ def list_repos(workspace: str) -> list[str]:
                 )
 
         url = data.get("next")
-
     return api_urls
 
 def invoke_bitbucket_http(url, timeout: int = 30):

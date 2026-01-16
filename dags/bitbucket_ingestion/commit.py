@@ -35,7 +35,7 @@ with DAG(
         task_id="process_repo",
         python_callable=fetch_api_to_minio,
         op_kwargs={
-            "bucket_name": CONFIG['raw_bucket'],
+            "bucket_name": CONFIG["raw_bucket"],
             "aws_conn_id": "minio_connection",
             "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/commit/date={execution_date}",
         },
