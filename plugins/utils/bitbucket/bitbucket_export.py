@@ -13,7 +13,6 @@ def fetch_api_to_minio(
     aws_conn_id: str,
     object_prefix: str,
     object_name: Optional[str] = None,
-
 ):
     """
     Generic function:
@@ -99,10 +98,12 @@ def list_repos(workspace: str) -> list[str]:
     return api_urls
 
 def invoke_bitbucket_http(url, timeout: int = 30):
+    url = f"{url}?pagelen=100"
     headers = {
         "Accept": "application/json",
         "Authorization": f"Basic {CONFIG['bitbucket_api_token']}"
     }
+
     response = requests.get(
         url,
         headers=headers,
