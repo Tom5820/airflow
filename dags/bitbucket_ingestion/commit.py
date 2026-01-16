@@ -42,4 +42,4 @@ with DAG(
         }
     ).expand(list_repos_task.output)
 
-    fetch_commit
+    list_repos_task >> fetch_commit
