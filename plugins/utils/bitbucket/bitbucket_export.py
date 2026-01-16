@@ -65,16 +65,16 @@ def fetch_api_to_minio(
         "object": object_name,
         "size_bytes": len(json_str)
     }
-# def fetch_entity_by_repo(repo_url, entity_type, bucket_name, aws_conn_id, object_prefix ):
-#     while repo_url:
-#         repo_data = invoke_bitbucket_http(repo_url)
-#         for repo in repo_data.get("values", []):
-#             repo_slug = repo["slug"]
-#             api_url = f"{repo_url}/{repo_slug}/{entity_type}"
-#             fetch_api_to_minio(api_url, bucket_name, aws_conn_id, object_prefix)
-#         repo_url = repo_data.get("next")
-#
-#     return 1
+def fetch_entity_by_repo(repo_url, entity_type, bucket_name, aws_conn_id, object_prefix ):
+    while repo_url:
+        repo_data = invoke_bitbucket_http(repo_url)
+        for repo in repo_data.get("values", []):
+            repo_slug = repo["slug"]
+            api_url = f"{repo_url}/{repo_slug}/{entity_type}"
+            fetch_api_to_minio(api_url, bucket_name, aws_conn_id, object_prefix)
+        repo_url = repo_data.get("next")
+
+    return 1
 
 def list_repos(workspace: str) -> list[str]:
     """
