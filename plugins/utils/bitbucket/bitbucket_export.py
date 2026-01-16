@@ -18,9 +18,6 @@ def fetch_api_to_minio(
     Generic function:
     Call REST API and store JSON response to MinIO via Airflow S3Hook
     """
-
-
-
     all_values: List[Dict] = []
     current_url = api_url
     meta = {}
@@ -71,7 +68,7 @@ def fetch_entity_by_repo(repo_url, entity_type, bucket_name, aws_conn_id, object
         repo_data = invoke_bitbucket_http(repo_url)
         for repo in repo_data.get("values", []):
             repo_slug = repo["slug"]
-            api_url = f"{original_url}/{repo_slug}/{entity_type}"
+            api_url = f"{original_url}/{repo_slug}/{entity_type}?pagelen=100"
             fetch_api_to_minio(api_url, bucket_name, aws_conn_id, object_prefix)
         repo_url = repo_data.get("next")
 
@@ -98,7 +95,6 @@ def list_repos(workspace: str) -> list[str]:
     return api_urls
 
 def invoke_bitbucket_http(url, timeout: int = 30):
-    url = f"{url}?pagelen=100"
     headers = {
         "Accept": "application/json",
         "Authorization": f"Basic {CONFIG['bitbucket_api_token']}"
