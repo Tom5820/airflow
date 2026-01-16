@@ -40,6 +40,7 @@ def fetch_api_to_minio(
     final_payload = {
         "meta": meta,
         "count": len(all_values),
+        "api_url": api_url,
         "values": all_values
     }
 
