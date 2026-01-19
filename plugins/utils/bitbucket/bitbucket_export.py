@@ -64,11 +64,16 @@ def fetch_api_to_minio(
     }
 def fetch_entity_by_repo(repo_url, entity_type, bucket_name, aws_conn_id, object_prefix ):
     original_url = repo_url
+    pagelen = 0
+    if entity_type == "commits":
+        pagelen = 100
+    if entity_type == "pullrequests":
+        pagelen = 50
     while repo_url:
         repo_data = invoke_bitbucket_http(repo_url)
         for repo in repo_data.get("values", []):
             repo_slug = repo["slug"]
-            api_url = f"{original_url}/{repo_slug}/{entity_type}?pagelen=100"
+            api_url = f"{original_url}/{repo_slug}/{entity_type}?pagelen={pagelen}"
             fetch_api_to_minio(api_url, bucket_name, aws_conn_id, object_prefix)
         repo_url = repo_data.get("next")
 
