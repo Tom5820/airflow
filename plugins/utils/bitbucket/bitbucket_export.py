@@ -3,7 +3,7 @@ import requests
 from datetime import datetime
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from typing import Optional, List, Dict
-
+from airflow.models import Variable
 from plugins.utils.common.get_config import CONFIG
 
 
@@ -62,20 +62,33 @@ def fetch_api_to_minio(
         "object": object_name,
         "size_bytes": len(json_str)
     }
+# def fetch_entity_by_repo(repo_url, entity_type, bucket_name, aws_conn_id, object_prefix ):
+#     original_url = repo_url
+#     pagelen = 0
+#     if entity_type == "commits":
+#         pagelen = 100
+#     if entity_type == "pullrequests":
+#         pagelen = 50
+#     while repo_url:
+#         repo_data = invoke_bitbucket_http(repo_url)
+#         for repo in repo_data.get("values", []):
+#             repo_slug = repo["slug"]
+#             api_url = f"{original_url}/{repo_slug}/{entity_type}?pagelen={pagelen}"
+#             fetch_api_to_minio(api_url, bucket_name, aws_conn_id, object_prefix)
+#         repo_url = repo_data.get("next")
+#
+#     return 1
+
 def fetch_entity_by_repo(repo_url, entity_type, bucket_name, aws_conn_id, object_prefix ):
-    original_url = repo_url
+    my_list = Variable.get("my_list_var", deserialize_json=True)
     pagelen = 0
     if entity_type == "commits":
         pagelen = 100
     if entity_type == "pullrequests":
         pagelen = 50
-    while repo_url:
-        repo_data = invoke_bitbucket_http(repo_url)
-        for repo in repo_data.get("values", []):
-            repo_slug = repo["slug"]
-            api_url = f"{original_url}/{repo_slug}/{entity_type}?pagelen={pagelen}"
-            fetch_api_to_minio(api_url, bucket_name, aws_conn_id, object_prefix)
-        repo_url = repo_data.get("next")
+    for repo_slug in my_list:
+        api_url = f"{repo_url}/{repo_slug}/{entity_type}?pagelen={pagelen}"
+        fetch_api_to_minio(api_url, bucket_name, aws_conn_id, object_prefix)
 
     return 1
 
