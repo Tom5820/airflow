@@ -95,7 +95,6 @@ def create_spark_job(
         },
     }
 
-    print(application_file)
     application_file_yaml = yaml.safe_dump(application_file, sort_keys=False, allow_unicode=True)
     return SparkKubernetesOperator(
         task_id=task_id,

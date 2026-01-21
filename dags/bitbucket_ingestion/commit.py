@@ -35,4 +35,14 @@ with DAG(
         },
     )
 
+    spark_test = create_spark_job(
+        task_id="spark_test_task",
+        app_name="spark-test",
+        main_application_file=f"s3a://{CONFIG['spark_code_bucket']}/bitbucket/commit_json_extract.py",
+        arguments=["--path", f"s3a://{CONFIG['raw_bucket']}/{CONFIG['bitbucket_raw_prefix_path']}/commit/date={execution_date}"],
+        driver_memory="1g",
+        executor_memory="1g",
+        executor_instances=2
+    )
+
     fetch_commit
