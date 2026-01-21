@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 
 from plugins.utils.bitbucket.bitbucket_export import fetch_entity_by_repo
 from plugins.utils.common.get_config import CONFIG
+from plugins.utils.common.spark_client import create_spark_job
+
 
 
 default_args = {
@@ -35,8 +37,8 @@ with DAG(
         },
     )
 
-    spark_test = create_spark_job(
-        task_id="spark_test_task",
+    spark_commit_json_extract = create_spark_job(
+        task_id="spark_commit_json_extract",
         app_name="spark-test",
         main_application_file=f"s3a://{CONFIG['spark_code_bucket']}/bitbucket/commit_json_extract.py",
         arguments=["--path", f"s3a://{CONFIG['raw_bucket']}/{CONFIG['bitbucket_raw_prefix_path']}/commit/date={execution_date}"],
@@ -45,4 +47,4 @@ with DAG(
         executor_instances=2
     )
 
-    fetch_commit
+    fetch_commit >> spark_commit_json_extract
