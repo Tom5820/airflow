@@ -38,8 +38,8 @@ with DAG(
     )
 
     spark_commit_json_extract = create_spark_job(
-        task_id="spark_commit_json_extract",
-        app_name="spark-test",
+        task_id="spark_bitbucket_commit_json_extract",
+        app_name="spark-bitbucket-commit",
         main_application_file=f"s3a://{CONFIG['spark_code_bucket']}/bitbucket/commit_json_extract.py",
         arguments=["--source_path", f"s3a://{CONFIG['raw_bucket']}/{CONFIG['bitbucket_raw_prefix_path']}/commit/date={execution_date}",
                     "--output_table", "raw_zone.bitbucket_commit"],
