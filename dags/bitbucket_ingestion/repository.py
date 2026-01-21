@@ -36,4 +36,15 @@ with DAG(
         },
     )
 
-    fetch_repos
+    spark_repository_json_extract = create_spark_job(
+        task_id="spark_bitbucket_repository_json_extract",
+        app_name="spark-bitbucket-repository",
+        main_application_file=f"s3a://{CONFIG['spark_code_bucket']}/bitbucket/repository_json_extract.py",
+        arguments=["--source_path", f"s3a://{CONFIG['raw_bucket']}/{CONFIG['bitbucket_raw_prefix_path']}/repository/date={execution_date}",
+                    "--output_table", "raw_zone.bitbucket_repository"],
+        driver_memory="1g",
+        executor_memory="1g",
+        executor_instances=2
+    )
+
+    fetch_repos >> spark_repository_json_extract
