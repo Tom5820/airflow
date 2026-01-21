@@ -38,9 +38,11 @@ def create_spark_job(
         "spark.hadoop.fs.s3a.access.key": CONFIG["minio_access_key"],
         "spark.hadoop.fs.s3a.secret.key": CONFIG["minio_secret_key"],
         "spark.hadoop.fs.s3a.path.style.access": "true",
+        "spark.sql.catalogImplementation": "hive",
+        "spark.hadoop.hive.metastore.uris": CONFIG["hive_metastore_uri"],
         "spark.sql.extensions": "io.delta.sql.DeltaSparkSessionExtension",
         "spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog",
-        "spark.jars.ivy": "/tmp/.ivy2"
+        "spark.jars.ivy": "/tmp/.ivy2",
 
     }
     if extra_spark_conf:
