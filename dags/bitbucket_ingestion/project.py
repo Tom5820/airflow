@@ -35,5 +35,14 @@ with DAG(
             "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/projects/date={execution_date}",
         },
     )
-
-    fetch_projects
+    spark_project_json_extract = create_spark_job(
+        task_id="spark_bitbucket_project_json_extract",
+        app_name="spark-bitbucket-project",
+        main_application_file=f"s3a://{CONFIG['spark_code_bucket']}/bitbucket/project_json_extract.py",
+        arguments=["--source_path", f"s3a://{CONFIG['raw_bucket']}/{CONFIG['bitbucket_raw_prefix_path']}/projects/date={execution_date}",
+                    "--output_table", "raw_zone.bitbucket_project"],
+        driver_memory="1g",
+        executor_memory="1g",
+        executor_instances=2
+    )
+    fetch_projects >> spark_project_json_extract
