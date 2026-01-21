@@ -48,4 +48,4 @@ with DAG(
         executor_instances=2
     )
 
-    fetch_pull_request
+    fetch_pull_request >> spark_pull_request_json_extract
