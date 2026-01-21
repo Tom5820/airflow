@@ -41,7 +41,8 @@ with DAG(
         task_id="spark_commit_json_extract",
         app_name="spark-test",
         main_application_file=f"s3a://{CONFIG['spark_code_bucket']}/bitbucket/commit_json_extract.py",
-        arguments=["--path", f"s3a://{CONFIG['raw_bucket']}/{CONFIG['bitbucket_raw_prefix_path']}/commit/date={execution_date}"],
+        arguments=["--source_path", f"s3a://{CONFIG['raw_bucket']}/{CONFIG['bitbucket_raw_prefix_path']}/commit/date={execution_date}",
+                    "--output_table", "raw_zone.bitbucket_commit"],
         driver_memory="1g",
         executor_memory="1g",
         executor_instances=2
