@@ -33,5 +33,15 @@ with DAG(
             "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/members/date={execution_date}",
         },
     )
+    spark_author_json_extract = create_spark_job(
+        task_id="spark_bitbucket_author_json_extract",
+        app_name="spark-bitbucket-author",
+        main_application_file=f"s3a://{CONFIG['spark_code_bucket']}/bitbucket/author_json_extract.py",
+        arguments=["--source_path", f"s3a://{CONFIG['raw_bucket']}/{CONFIG['bitbucket_raw_prefix_path']}/members/date={execution_date}",
+                    "--output_table", "raw_zone.bitbucket_author"],
+        driver_memory="1g",
+        executor_memory="1g",
+        executor_instances=2
+    )
 
-    fetch_members
+    fetch_members >> spark_author_json_extract
