@@ -25,12 +25,23 @@ with DAG(
     tags=["bitbucket", "minio", "api"],
 ) as dag:
 
+    # fetch_pull_request = PythonOperator(
+    #     task_id="fetch_pull_request",
+    #     python_callable=fetch_entity_by_repo,
+    #     op_kwargs={
+    #         "repo_url": f"https://api.bitbucket.org/2.0/repositories/{CONFIG['bitbucket_workspace']}",
+    #         "entity_type": "pullrequests",
+    #         "bucket_name": CONFIG['raw_bucket'],
+    #         "aws_conn_id": "minio_connection",
+    #         "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/pull_request/date={execution_date}",
+    #     },
+    # )
+
     fetch_pull_request = PythonOperator(
         task_id="fetch_pull_request",
-        python_callable=fetch_entity_by_repo,
+        python_callable=fetch_api_to_minio,
         op_kwargs={
-            "repo_url": f"https://api.bitbucket.org/2.0/repositories/{CONFIG['bitbucket_workspace']}",
-            "entity_type": "pullrequests",
+            "api_url": f"https://api.bitbucket.org/2.0/repositories/{CONFIG['bitbucket_workspace']}/pullrequests?state=ALL&pagelen=50",
             "bucket_name": CONFIG['raw_bucket'],
             "aws_conn_id": "minio_connection",
             "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/pull_request/date={execution_date}",
