@@ -63,20 +63,57 @@ def fetch_api_to_minio(
         "size_bytes": len(json_str)
     }
     
-def fetch_entity_by_repo(repo_url, entity_type, bucket_name, aws_conn_id, object_prefix ):
-    original_url = repo_url
+def fetch_entity_by_repo(
+    repo_url: str,
+    entity_type: str,
+    bucket_name: str,
+    aws_conn_id: str,
+    object_prefix: str,
+    partition_date: str,
+    postgres_conn_id: str = "postgres_default"
+):
+    """
+    Fetch entity từ Bitbucket với state tracking.
+    Chỉ fetch repos chưa completed từ bảng state.
+    Khi clear task và chạy lại sẽ chỉ fetch repos còn pending.
+    
+    Args:
+        repo_url: Base URL for repositories API
+        entity_type: Type of entity (commits, pullrequests)
+        bucket_name: MinIO bucket name
+        aws_conn_id: Airflow connection ID for S3/MinIO
+        object_prefix: Prefix path for stored objects
+        partition_date: Execution date (YYYYMMDD format)
+        postgres_conn_id: Airflow connection ID for PostgreSQL
+    """
+    from plugins.utils.bitbucket.ingestion_state import IngestionStateManager
+    
+    state_manager = IngestionStateManager(postgres_conn_id=postgres_conn_id)
+    
     if entity_type == "commits":
-        params = f"pagelen=100"
-    if entity_type == "pullrequests":
-        params = f"state=ALL&pagelen=50"
-    while repo_url:
-        repo_data = invoke_bitbucket_http(repo_url)
-        for repo in repo_data.get("values", []):
-            repo_slug = repo["slug"]
-            api_url = f"{original_url}/{repo_slug}/{entity_type}?{params}"
+        params = "pagelen=100"
+    elif entity_type == "pullrequests":
+        params = "state=ALL&pagelen=50"
+    else:
+        params = "pagelen=50"
+    
+    pending_repos = state_manager.get_pending_repos(partition_date, entity_type)
+    
+    if not pending_repos:
+        summary = state_manager.get_ingestion_summary(partition_date, entity_type)
+        return {"status": "no_pending_repos", **summary}
+
+    for repo_slug in pending_repos:
+        api_url = f"{repo_url}/{repo_slug}/{entity_type}?{params}"
+        try:
             fetch_api_to_minio(api_url, bucket_name, aws_conn_id, object_prefix)
-        repo_url = repo_data.get("next")
-    return 1
+            state_manager.mark_repo_completed(partition_date, entity_type, repo_slug)
+        except Exception as e:
+            import logging
+            logging.error(f"Failed to fetch {repo_slug}: {e}")
+            raise 
+    summary = state_manager.get_ingestion_summary(partition_date, entity_type)
+    return summary
 
 # def fetch_entity_by_repo(repo_url, entity_type, bucket_name, aws_conn_id, object_prefix ):
 #     my_list = Variable.get("LIST_URL_TO_FETCH", deserialize_json=True)
