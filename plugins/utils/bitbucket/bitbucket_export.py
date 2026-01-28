@@ -115,17 +115,69 @@ def fetch_entity_by_repo(
     summary = state_manager.get_ingestion_summary(partition_date, entity_type)
     return summary
 
-# def fetch_entity_by_repo(repo_url, entity_type, bucket_name, aws_conn_id, object_prefix ):
-#     my_list = Variable.get("LIST_URL_TO_FETCH", deserialize_json=True)
-#     pagelen = 0
-#     if entity_type == "commits":
-#         pagelen = 100
-#     if entity_type == "pullrequests":
-#         pagelen = 50
-#     for repo_slug in my_list:
-#         api_url = f"{repo_url}/{repo_slug}/{entity_type}?pagelen={pagelen}"
-#         fetch_api_to_minio(api_url, bucket_name, aws_conn_id, object_prefix)
-#     return 1
+
+def fetch_pr_activity(
+    repo_url: str,
+    bucket_name: str,
+    aws_conn_id: str,
+    object_prefix: str,
+    partition_date: str,
+    postgres_conn_id: str = "postgres_default"
+):
+    """
+    Fetch PR activity từ Bitbucket với state tracking theo repo_slug.
+    - Check state bằng entity_type = "pullrequests_activity", repo_slug = tên repo
+    - Với mỗi repo pending: fetch tất cả PRs, rồi fetch activity cho từng PR
+    - Mark completed sau khi xử lý xong tất cả PRs của repo đó
+    
+    Args:
+        repo_url: Base URL (e.g., https://api.bitbucket.org/2.0/repositories/workspace)
+        bucket_name: MinIO bucket name
+        aws_conn_id: Airflow connection ID for S3/MinIO
+        object_prefix: Prefix path for stored objects
+        partition_date: Execution date (YYYYMMDD format)
+        postgres_conn_id: Airflow connection ID for PostgreSQL
+    """
+    from plugins.utils.bitbucket.ingestion_state import IngestionStateManager
+    import logging
+    
+    state_manager = IngestionStateManager(postgres_conn_id=postgres_conn_id)
+    entity_type = "pullrequests_activity"
+    
+    pending_repos = state_manager.get_pending_repos(partition_date, entity_type)
+    
+    if not pending_repos:
+        summary = state_manager.get_ingestion_summary(partition_date, entity_type)
+        return {"status": "no_pending_repos", **summary}
+
+    for repo_slug in pending_repos:
+        # Step 1: Fetch all PRs for this repo
+        pr_url = f"{repo_url}/{repo_slug}/pullrequests?state=ALL&pagelen=50"
+        pr_ids = []
+        
+        while pr_url:
+            pr_data = invoke_bitbucket_http(pr_url)
+            for pr in pr_data.get("values", []):
+                pr_id = pr.get("id")
+                if pr_id:
+                    pr_ids.append(pr_id)
+            pr_url = pr_data.get("next")
+        
+        # Step 2: Fetch activity for each PR
+        for pr_id in pr_ids:
+            api_url = f"{repo_url}/{repo_slug}/pullrequests/{pr_id}/activity?pagelen=50"
+            try:
+                fetch_api_to_minio(api_url, bucket_name, aws_conn_id, object_prefix)
+            except Exception as e:
+                logging.error(f"Failed to fetch activity for {repo_slug}/PR#{pr_id}: {e}")
+                raise
+        
+        # Step 3: Mark repo as completed after all PRs processed
+        state_manager.mark_repo_completed(partition_date, entity_type, repo_slug)
+        logging.info(f"Completed {repo_slug}: fetched activity for {len(pr_ids)} PRs")
+    
+    summary = state_manager.get_ingestion_summary(partition_date, entity_type)
+    return summary
 
 def list_repos(workspace: str) -> list[str]:
     """
