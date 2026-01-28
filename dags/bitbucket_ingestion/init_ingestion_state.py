@@ -87,7 +87,7 @@ with DAG(
 
     init_pr_activity = PythonOperator(
         task_id="init_pq_activity_state",
-        python_callable=init_pr_activity_state,
+        python_callable=init_repos_for_entity,
         op_kwargs={
             "partition_date": execution_date,
             "entity_type": "pullrequests_activity",
