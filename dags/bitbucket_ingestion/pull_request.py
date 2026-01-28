@@ -2,7 +2,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 
-from plugins.utils.bitbucket.bitbucket_export import fetch_entity_by_repo
+from plugins.utils.bitbucket.bitbucket_export import fetch_entity_by_repo, fetch_api_to_minio
 from plugins.utils.common.get_config import CONFIG
 from plugins.utils.common.spark_client import create_spark_job
 
