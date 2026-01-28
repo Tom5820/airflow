@@ -85,4 +85,13 @@ with DAG(
         },
     )
 
-    [init_commits, init_pullrequests]
+    init_pq_activity = PythonOperator(
+        task_id="init_pq_activity_state",
+        python_callable=init_repos_for_entity,
+        op_kwargs={
+            "partition_date": execution_date,
+            "entity_type": "pq_activity",
+        },
+    )
+
+    [init_commits, init_pullrequests, init_pq_activity]
