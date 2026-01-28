@@ -10,7 +10,7 @@ from plugins.utils.common.spark_client import create_spark_job
 
 default_args = {
     "owner": "lannh",
-    "retries": 0,
+    "retries": 3,
     "retry_delay": timedelta(minutes=5),
 }
 
