@@ -62,7 +62,7 @@ with DAG(
     description="Initialize Bitbucket repos for ingestion tracking",
     default_args=default_args,
     start_date=datetime(2026, 1, 1),
-    schedule_interval="@daily",
+    schedule="@daily",
     catchup=False,
     tags=["bitbucket", "ingestion", "init"],
 ) as dag:
