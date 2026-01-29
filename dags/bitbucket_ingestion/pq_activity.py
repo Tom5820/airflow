@@ -25,27 +25,27 @@ with DAG(
     tags=["bitbucket", "minio", "api", "activity"],
 ) as dag:
 
-    fetch_pq_activity = PythonOperator(
-        task_id="fetch_pq_activity",
+    fetch_pr_activity = PythonOperator(
+        task_id="fetch_pr_activity",
         python_callable=fetch_pr_activity,
         op_kwargs={
             "repo_url": f"https://api.bitbucket.org/2.0/repositories/{CONFIG['bitbucket_workspace']}",
             "bucket_name": CONFIG['raw_bucket'],
             "aws_conn_id": "minio_connection",
-            "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/pq_activity/date={execution_date}",
+            "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/pr_activity/date={execution_date}",
             "partition_date": execution_date,
         },
     )
 
-    # spark_pq_activity_json_extract = create_spark_job(
-    #     task_id="spark_bitbucket_pq_activity_json_extract",
-    #     app_name="spark-bitbucket-pq_activity",
-    #     main_application_file=f"s3a://{CONFIG['spark_code_bucket']}/bitbucket/pq_activity_json_extract.py",
-    #     arguments=["--source_path", f"s3a://{CONFIG['raw_bucket']}/{CONFIG['bitbucket_raw_prefix_path']}/pq_activity/date={execution_date}",
-    #                 "--output_table", "raw_zone.bitbucket_pq_activity"],
-    #     driver_memory="1g",
-    #     executor_memory="1g",
-    #     executor_instances=2
-    # )
+    spark_pq_activity_json_extract = create_spark_job(
+        task_id="spark_bitbucket_pq_activity_json_extract",
+        app_name="spark-bitbucket-pq_activity",
+        main_application_file=f"s3a://{CONFIG['spark_code_bucket']}/bitbucket/pr_activity_json_extract.py",
+        arguments=["--source_path", f"s3a://{CONFIG['raw_bucket']}/{CONFIG['bitbucket_raw_prefix_path']}/pr_activity/date={execution_date}",
+                    "--output_table", "raw_zone.bitbucket_pr_activity"],
+        driver_memory="1g",
+        executor_memory="1g",
+        executor_instances=2
+    )
 
-    fetch_pq_activity
+    fetch_pr_activity >> spark_pq_activity_json_extract
