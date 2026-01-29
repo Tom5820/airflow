@@ -16,7 +16,7 @@ default_args = {
 execution_date = '{{ ds_nodash }}'
 
 with DAG(
-    dag_id="bitbucket_pq_activity",
+    dag_id="bitbucket_pr_activity",
     description="Fetch Bitbucket Pull Request Activity API and store raw JSON to MinIO",
     default_args=default_args,
     start_date=datetime(2026, 1, 1),
@@ -37,9 +37,9 @@ with DAG(
         },
     )
 
-    spark_pq_activity_json_extract = create_spark_job(
-        task_id="spark_bitbucket_pq_activity_json_extract",
-        app_name="spark-bitbucket-pq_activity",
+    spark_pr_activity_json_extract = create_spark_job(
+        task_id="spark_bitbucket_pr_activity_json_extract",
+        app_name="spark-bitbucket-pr_activity",
         main_application_file=f"s3a://{CONFIG['spark_code_bucket']}/bitbucket/pr_activity_json_extract.py",
         arguments=["--source_path", f"s3a://{CONFIG['raw_bucket']}/{CONFIG['bitbucket_raw_prefix_path']}/pr_activity/date={execution_date}",
                     "--output_table", "raw_zone.bitbucket_pr_activity"],
@@ -48,4 +48,4 @@ with DAG(
         executor_instances=2
     )
 
-    fetch_pr_activity >> spark_pq_activity_json_extract
+    fetch_pr_activity >> spark_pr_activity_json_extract
