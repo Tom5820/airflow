@@ -20,7 +20,7 @@ with DAG(
     description="Fetch Bitbucket Pull Request Activity API and store raw JSON to MinIO",
     default_args=default_args,
     start_date=datetime(2026, 1, 1),
-    schedule="@daily",
+    # schedule="@daily",
     catchup=False,
     tags=["bitbucket", "minio", "api", "activity"],
 ) as dag:
