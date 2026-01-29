@@ -42,7 +42,7 @@ with DAG(
         app_name="spark-bitbucket-pr_activity",
         main_application_file=f"s3a://{CONFIG['spark_code_bucket']}/bitbucket/pr_activity_json_extract.py",
         arguments=["--source_path", f"s3a://{CONFIG['raw_bucket']}/{CONFIG['bitbucket_raw_prefix_path']}/pr_activity/date={execution_date}",
-                    "--output_table", "raw_zone.bitbucket_pr_activity"],
+                    "--output_table", "raw_zone.bitbucket_pull_request_activity"],
         driver_memory="1g",
         executor_memory="1g",
         executor_instances=2
