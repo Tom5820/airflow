@@ -37,8 +37,8 @@ with DAG(
     #     },
     # )
 
-    fetch_pull_request = PythonOperator(
-        task_id="fetch_pull_request",
+    fetch_pr_activity = PythonOperator(
+        task_id="fetch_pr_activity",
         python_callable=fetch_entity_by_repo,
         op_kwargs={
             "repo_url": f"https://api.bitbucket.org/2.0/repositories/{CONFIG['bitbucket_workspace']}",

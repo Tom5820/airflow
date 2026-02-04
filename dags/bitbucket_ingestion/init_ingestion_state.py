@@ -90,7 +90,7 @@ with DAG(
         python_callable=init_repos_for_entity,
         op_kwargs={
             "partition_date": execution_date,
-            "entity_type": "pullrequests_activity",
+            "entity_type": "pullrequests/activity",
         },
     )
 
