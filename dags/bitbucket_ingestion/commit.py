@@ -1,5 +1,5 @@
 from airflow import DAG
-from airflow.operators.python import PythonOperator
+from airflow.providers.standard.operators.python import PythonOperator
 from datetime import datetime, timedelta
 
 from plugins.utils.bitbucket.bitbucket_export import fetch_entity_by_repo
@@ -35,6 +35,7 @@ with DAG(
             "aws_conn_id": "minio_connection",
             "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/commit/date={execution_date}",
             "partition_date": execution_date,
+            "params": "pagelen=50",
         },
     )
 
