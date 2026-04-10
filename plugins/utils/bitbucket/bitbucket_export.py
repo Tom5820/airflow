@@ -70,6 +70,7 @@ def fetch_entity_by_repo(
     aws_conn_id: str,
     object_prefix: str,
     partition_date: str,
+    params: str,
     postgres_conn_id: str = "postgres_default"
 ):
     """
@@ -90,13 +91,14 @@ def fetch_entity_by_repo(
     
     state_manager = IngestionStateManager(postgres_conn_id=postgres_conn_id)
     
-    if entity_type == "commits":
-        params = "pagelen=100"
-    elif entity_type == "pullrequests":
-        params = "state=ALL&pagelen=50"
-    else:
-        params = "pagelen=50"
+    # if entity_type == "commits":
+    #     params = "pagelen=50"
+    # elif entity_type == "pullrequests":
+    #     params = "state=ALL&pagelen=50"
+    # else:
+    #     params = "pagelen=50"
     
+   
     pending_repos = state_manager.get_pending_repos(partition_date, entity_type)
     
     if not pending_repos:
