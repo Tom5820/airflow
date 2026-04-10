@@ -35,7 +35,6 @@ with DAG(
             "aws_conn_id": "minio_connection",
             "object_prefix": f"{CONFIG['bitbucket_raw_prefix_path']}/commit/date={execution_date}",
             "partition_date": execution_date,
-            "params": "pagelen=50",
         },
     )
 
