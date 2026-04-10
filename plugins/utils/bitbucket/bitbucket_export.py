@@ -70,7 +70,6 @@ def fetch_entity_by_repo(
     aws_conn_id: str,
     object_prefix: str,
     partition_date: str,
-    params: str,
     postgres_conn_id: str = "postgres_default"
 ):
     """
